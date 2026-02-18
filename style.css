@@ -675,6 +675,68 @@ body {
   white-space: nowrap;
 }
 
+/* ===== Contact Form ===== */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.contact-success {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.contact-success .success-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.contact-success h3 {
+  margin-bottom: 8px;
+}
+
+.contact-success p {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
 /* ===== Footer ===== */
 .footer {
   text-align: center;

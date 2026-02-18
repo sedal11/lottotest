@@ -22,6 +22,7 @@
       <button class="tab" data-tab="saved">내 번호</button>
       <button class="tab" data-tab="check">당첨 확인</button>
       <button class="tab" data-tab="stats">통계</button>
+      <button class="tab" data-tab="contact">제휴 문의</button>
     </nav>
 
     <main class="content">
@@ -111,6 +112,48 @@
           <div class="card-inner">
             <h3>최근 생성 이력</h3>
             <div id="recentHistory" class="recent-history"></div>
+          </div>
+        </div>
+      </section>
+      <!-- 제휴 문의 탭 -->
+      <section id="tab-contact" class="tab-panel">
+        <div class="card">
+          <h2>제휴 문의</h2>
+          <p class="subtitle">비즈니스 제휴 및 협업 문의를 남겨주세요</p>
+          <form id="contactForm" action="https://formspree.io/f/xzdaveba" method="POST">
+            <div class="form-group">
+              <label for="contactName">이름 / 회사명</label>
+              <input type="text" id="contactName" name="name" placeholder="홍길동 / ABC 주식회사" required>
+            </div>
+            <div class="form-group">
+              <label for="contactEmail">이메일</label>
+              <input type="email" id="contactEmail" name="email" placeholder="example@email.com" required>
+            </div>
+            <div class="form-group">
+              <label for="contactPhone">연락처</label>
+              <input type="tel" id="contactPhone" name="phone" placeholder="010-1234-5678">
+            </div>
+            <div class="form-group">
+              <label for="contactType">문의 유형</label>
+              <select id="contactType" name="type" required>
+                <option value="" disabled selected>선택해주세요</option>
+                <option value="광고 제휴">광고 제휴</option>
+                <option value="서비스 제휴">서비스 제휴</option>
+                <option value="기술 협업">기술 협업</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="contactMessage">문의 내용</label>
+              <textarea id="contactMessage" name="message" rows="5" placeholder="제휴 관련 내용을 자유롭게 작성해주세요" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large btn-full">📩 문의 보내기</button>
+          </form>
+          <div id="contactSuccess" class="contact-success" style="display:none;">
+            <div class="success-icon">✅</div>
+            <h3>문의가 접수되었습니다!</h3>
+            <p>빠른 시일 내에 답변 드리겠습니다.</p>
+            <button id="contactReset" class="btn btn-outline">새 문의 작성</button>
           </div>
         </div>
       </section>

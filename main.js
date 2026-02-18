@@ -429,6 +429,46 @@
     });
   }
 
+  // ===== Contact Form =====
+  const contactForm = $('#contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = contactForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = '전송 중...';
+
+      try {
+        const res = await fetch(contactForm.action, {
+          method: 'POST',
+          body: new FormData(contactForm),
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (res.ok) {
+          contactForm.style.display = 'none';
+          $('#contactSuccess').style.display = 'block';
+        } else {
+          showToast('전송에 실패했습니다. 다시 시도해주세요.');
+        }
+      } catch {
+        showToast('네트워크 오류가 발생했습니다.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = '📩 문의 보내기';
+    });
+  }
+
+  const contactReset = $('#contactReset');
+  if (contactReset) {
+    contactReset.addEventListener('click', () => {
+      contactForm.reset();
+      contactForm.style.display = 'block';
+      $('#contactSuccess').style.display = 'none';
+    });
+  }
+
   // ===== Init =====
   initTheme();
   initNumberGrid();
