@@ -1,1 +1,436 @@
-// Add JS here
+(function () {
+  'use strict';
+
+  // ===== Storage Keys =====
+  const STORAGE = {
+    SAVED: 'lotto_saved',
+    HISTORY: 'lotto_history',
+    STATS: 'lotto_stats',
+    THEME: 'lotto_theme',
+  };
+
+  // ===== Utility Functions =====
+  function getBallClass(num) {
+    if (num <= 10) return 'ball-1-10';
+    if (num <= 20) return 'ball-11-20';
+    if (num <= 30) return 'ball-21-30';
+    if (num <= 40) return 'ball-31-40';
+    return 'ball-41-45';
+  }
+
+  function createBallEl(num, options = {}) {
+    const el = document.createElement('span');
+    el.className = `ball ${getBallClass(num)}`;
+    if (options.animate) {
+      el.classList.add('ball-animate');
+      el.style.animationDelay = `${(options.index || 0) * 0.08}s`;
+    }
+    if (options.matched === true) el.classList.add('matched');
+    if (options.matched === false) el.classList.add('not-matched');
+    el.textContent = num;
+    return el;
+  }
+
+  function generateNumbers() {
+    const numbers = [];
+    while (numbers.length < 6) {
+      const n = Math.floor(Math.random() * 45) + 1;
+      if (!numbers.includes(n)) numbers.push(n);
+    }
+    return numbers.sort((a, b) => a - b);
+  }
+
+  function loadStorage(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${m}/${day} ${h}:${min}`;
+  }
+
+  function showToast(message) {
+    let toast = document.querySelector('.toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.remove('show');
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  function getRank(myNumbers, winNumbers, bonus) {
+    const matchCount = myNumbers.filter(n => winNumbers.includes(n)).length;
+    const hasBonus = myNumbers.includes(bonus);
+    if (matchCount === 6) return { rank: 1, label: '1등 🏆', matchCount };
+    if (matchCount === 5 && hasBonus) return { rank: 2, label: '2등 🥈', matchCount, bonus: true };
+    if (matchCount === 5) return { rank: 3, label: '3등 🥉', matchCount };
+    if (matchCount === 4) return { rank: 4, label: '4등', matchCount };
+    if (matchCount === 3) return { rank: 5, label: '5등', matchCount };
+    return { rank: 0, label: '낙첨', matchCount };
+  }
+
+  function updateStats(numbersArray) {
+    const stats = loadStorage(STORAGE.STATS);
+    const counts = {};
+    for (let i = 1; i <= 45; i++) counts[i] = 0;
+    stats.forEach(s => { counts[s.num] = s.count; });
+    numbersArray.forEach(nums => {
+      nums.forEach(n => { counts[n] = (counts[n] || 0) + 1; });
+    });
+    const updated = Object.entries(counts).map(([num, count]) => ({ num: +num, count }));
+    saveStorage(STORAGE.STATS, updated);
+  }
+
+  function addToHistory(numbersArray) {
+    const history = loadStorage(STORAGE.HISTORY);
+    const now = new Date().toISOString();
+    numbersArray.forEach(nums => {
+      history.unshift({ numbers: nums, date: now });
+    });
+    if (history.length > 100) history.length = 100;
+    saveStorage(STORAGE.HISTORY, history);
+  }
+
+  // ===== DOM Elements =====
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+
+  // ===== Theme =====
+  function initTheme() {
+    const saved = localStorage.getItem(STORAGE.THEME);
+    const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = saved ? saved === 'dark' : preferDark;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    $('#themeToggle').textContent = dark ? '☀️' : '🌙';
+  }
+
+  $('#themeToggle').addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(STORAGE.THEME, next);
+    $('#themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+
+  // ===== Tabs =====
+  $$('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.tab').forEach(t => t.classList.remove('active'));
+      $$('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      $(`#tab-${tab.dataset.tab}`).classList.add('active');
+
+      if (tab.dataset.tab === 'saved') renderSaved();
+      if (tab.dataset.tab === 'stats') renderStats();
+    });
+  });
+
+  // ===== Generate Tab =====
+  let currentGenerated = [];
+
+  $('#generateBtn').addEventListener('click', () => {
+    const count = parseInt($('#gameCount').value);
+    currentGenerated = [];
+    const container = $('#generatedResults');
+    container.innerHTML = '';
+
+    for (let i = 0; i < count; i++) {
+      const nums = generateNumbers();
+      currentGenerated.push(nums);
+
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML = `<span class="game-label">${String.fromCharCode(65 + i)}</span><div class="balls"></div><button class="save-single" title="저장">💾</button>`;
+
+      const ballsDiv = row.querySelector('.balls');
+      nums.forEach((n, idx) => {
+        ballsDiv.appendChild(createBallEl(n, { animate: true, index: i * 6 + idx }));
+      });
+
+      row.querySelector('.save-single').addEventListener('click', () => {
+        saveNumbers(nums);
+        showToast('번호가 저장되었습니다!');
+      });
+
+      container.appendChild(row);
+    }
+
+    $('#saveAllBtn').style.display = 'block';
+    updateStats(currentGenerated);
+    addToHistory(currentGenerated);
+  });
+
+  $('#saveAllBtn').addEventListener('click', () => {
+    currentGenerated.forEach(nums => saveNumbers(nums));
+    showToast(`${currentGenerated.length}게임이 저장되었습니다!`);
+  });
+
+  // ===== Manual Tab =====
+  const manualSelected = [];
+
+  function initNumberGrid() {
+    const grid = $('#numberGrid');
+    for (let i = 1; i <= 45; i++) {
+      const btn = document.createElement('button');
+      btn.className = `grid-num ${getBallClass(i)}`;
+      btn.textContent = i;
+      btn.addEventListener('click', () => toggleManualNumber(i, btn));
+      grid.appendChild(btn);
+    }
+  }
+
+  function toggleManualNumber(num, btn) {
+    const idx = manualSelected.indexOf(num);
+    if (idx >= 0) {
+      manualSelected.splice(idx, 1);
+      btn.classList.remove('selected');
+    } else if (manualSelected.length < 6) {
+      manualSelected.push(num);
+      btn.classList.add('selected');
+    }
+    renderManualSelected();
+  }
+
+  function renderManualSelected() {
+    const container = $('#manualSelected');
+    container.innerHTML = '';
+    const sorted = [...manualSelected].sort((a, b) => a - b);
+    sorted.forEach(n => container.appendChild(createBallEl(n)));
+
+    for (let i = sorted.length; i < 6; i++) {
+      const placeholder = document.createElement('span');
+      placeholder.className = 'ball';
+      placeholder.style.cssText = 'background: var(--border); color: var(--text-secondary); box-shadow: none;';
+      placeholder.textContent = '?';
+      container.appendChild(placeholder);
+    }
+
+    $('#selectedCount').textContent = manualSelected.length;
+    $('#manualSaveBtn').disabled = manualSelected.length !== 6;
+  }
+
+  $('#manualResetBtn').addEventListener('click', () => {
+    manualSelected.length = 0;
+    $$('.grid-num').forEach(btn => btn.classList.remove('selected'));
+    renderManualSelected();
+  });
+
+  $('#manualSaveBtn').addEventListener('click', () => {
+    if (manualSelected.length !== 6) return;
+    const nums = [...manualSelected].sort((a, b) => a - b);
+    saveNumbers(nums);
+    updateStats([nums]);
+    addToHistory([nums]);
+    showToast('번호가 저장되었습니다!');
+    manualSelected.length = 0;
+    $$('.grid-num').forEach(btn => btn.classList.remove('selected'));
+    renderManualSelected();
+  });
+
+  // ===== Saved Tab =====
+  function saveNumbers(numbers) {
+    const saved = loadStorage(STORAGE.SAVED);
+    saved.unshift({ numbers, date: new Date().toISOString() });
+    saveStorage(STORAGE.SAVED, saved);
+  }
+
+  function renderSaved() {
+    const saved = loadStorage(STORAGE.SAVED);
+    const container = $('#savedList');
+    container.innerHTML = '';
+    $('#savedCount').textContent = saved.length;
+
+    if (saved.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>저장된 번호가 없습니다<br>번호를 생성하고 저장해보세요!</p></div>';
+      $('#clearAllBtn').style.display = 'none';
+      return;
+    }
+
+    saved.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'saved-item';
+      const ballsDiv = document.createElement('div');
+      ballsDiv.className = 'balls';
+      item.numbers.forEach(n => ballsDiv.appendChild(createBallEl(n)));
+
+      const dateSpan = document.createElement('span');
+      dateSpan.className = 'saved-date';
+      dateSpan.textContent = formatDate(item.date);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', () => {
+        saved.splice(i, 1);
+        saveStorage(STORAGE.SAVED, saved);
+        renderSaved();
+        showToast('삭제되었습니다');
+      });
+
+      row.appendChild(ballsDiv);
+      row.appendChild(dateSpan);
+      row.appendChild(delBtn);
+      container.appendChild(row);
+    });
+
+    $('#clearAllBtn').style.display = 'block';
+  }
+
+  $('#clearAllBtn').addEventListener('click', () => {
+    if (!confirm('저장된 번호를 모두 삭제하시겠습니까?')) return;
+    saveStorage(STORAGE.SAVED, []);
+    renderSaved();
+    showToast('모두 삭제되었습니다');
+  });
+
+  // ===== Check Tab =====
+  $('#checkBtn').addEventListener('click', () => {
+    const inputs = $$('.winning-num:not(.bonus)');
+    const winNumbers = [];
+    let valid = true;
+
+    inputs.forEach(input => {
+      const v = parseInt(input.value);
+      if (isNaN(v) || v < 1 || v > 45) valid = false;
+      else winNumbers.push(v);
+    });
+
+    const bonus = parseInt($('#bonusNum').value);
+    if (isNaN(bonus) || bonus < 1 || bonus > 45) valid = false;
+
+    if (!valid || winNumbers.length !== 6) {
+      showToast('당첨 번호를 모두 정확히 입력해주세요');
+      return;
+    }
+
+    if (new Set(winNumbers).size !== 6) {
+      showToast('중복된 번호가 있습니다');
+      return;
+    }
+
+    if (winNumbers.includes(bonus)) {
+      showToast('보너스 번호가 당첨 번호와 중복됩니다');
+      return;
+    }
+
+    const saved = loadStorage(STORAGE.SAVED);
+    const container = $('#checkResults');
+    container.innerHTML = '';
+
+    if (saved.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>저장된 번호가 없습니다<br>먼저 번호를 저장해주세요!</p></div>';
+      return;
+    }
+
+    saved.forEach((item, i) => {
+      const result = getRank(item.numbers, winNumbers, bonus);
+      const div = document.createElement('div');
+      div.className = 'check-result-item';
+
+      const ballsDiv = document.createElement('div');
+      ballsDiv.className = 'balls';
+      item.numbers.forEach(n => {
+        const isMatch = winNumbers.includes(n);
+        ballsDiv.appendChild(createBallEl(n, { matched: isMatch }));
+      });
+
+      const rankClass = result.rank > 0 ? `rank-${result.rank}` : 'rank-none';
+      const info = document.createElement('div');
+      info.innerHTML = `<span class="rank-badge ${rankClass}">${result.label}</span><span class="match-info">${result.matchCount}개 일치${result.bonus ? ' + 보너스' : ''}</span>`;
+
+      div.appendChild(ballsDiv);
+      div.appendChild(info);
+      container.appendChild(div);
+    });
+  });
+
+  // ===== Stats Tab =====
+  function renderStats() {
+    const stats = loadStorage(STORAGE.STATS);
+    const chart = $('#statsChart');
+    chart.innerHTML = '';
+
+    const counts = {};
+    for (let i = 1; i <= 45; i++) counts[i] = 0;
+    stats.forEach(s => { counts[s.num] = s.count; });
+
+    const maxCount = Math.max(1, ...Object.values(counts));
+
+    for (let i = 1; i <= 45; i++) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'stat-bar-wrapper';
+
+      const barContainer = document.createElement('div');
+      barContainer.className = 'stat-bar-container';
+
+      const bar = document.createElement('div');
+      bar.className = `stat-bar ${getBallClass(i)}`;
+      const pct = (counts[i] / maxCount) * 100;
+      bar.style.height = `${Math.max(3, pct)}%`;
+
+      barContainer.appendChild(bar);
+
+      const numLabel = document.createElement('span');
+      numLabel.className = 'stat-num';
+      numLabel.textContent = i;
+
+      const countLabel = document.createElement('span');
+      countLabel.className = 'stat-count';
+      countLabel.textContent = counts[i] || '';
+
+      wrapper.appendChild(countLabel);
+      wrapper.appendChild(barContainer);
+      wrapper.appendChild(numLabel);
+      chart.appendChild(wrapper);
+    }
+
+    // Recent history
+    const history = loadStorage(STORAGE.HISTORY);
+    const historyContainer = $('#recentHistory');
+    historyContainer.innerHTML = '';
+
+    if (history.length === 0) {
+      historyContainer.innerHTML = '<div class="empty-state"><p>생성 이력이 없습니다</p></div>';
+      return;
+    }
+
+    history.slice(0, 10).forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      const ballsDiv = document.createElement('div');
+      ballsDiv.className = 'balls';
+      item.numbers.forEach(n => ballsDiv.appendChild(createBallEl(n)));
+
+      const dateSpan = document.createElement('span');
+      dateSpan.className = 'history-date';
+      dateSpan.textContent = formatDate(item.date);
+
+      row.appendChild(ballsDiv);
+      row.appendChild(dateSpan);
+      historyContainer.appendChild(row);
+    });
+  }
+
+  // ===== Init =====
+  initTheme();
+  initNumberGrid();
+  renderManualSelected();
+})();
