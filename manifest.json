@@ -1,0 +1,20 @@
+{
+  "name": "로또 6/45 번호 생성기",
+  "short_name": "로또 6/45",
+  "description": "로또 6/45 무료 번호 생성기. 자동·수동 번호 생성, 당첨 확인, 통계 분석.",
+  "start_url": "/lottotest/",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#4361ee",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lottotest/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "ko",
+  "categories": ["utilities", "entertainment"]
+}

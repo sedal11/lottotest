@@ -7,6 +7,7 @@
   <meta name="description" content="로또 6/45 무료 번호 생성기. 자동·수동 번호 생성, 당첨 번호 확인, 번호 통계 분석까지. 매주 행운의 번호를 뽑아보세요!">
   <meta name="keywords" content="로또, 로또 6/45, 번호 생성기, 로또 번호 추천, 당첨 확인, 로또 통계, 로또 분석">
   <meta name="author" content="로또 6/45 번호 생성기">
+  <link rel="icon" type="image/svg+xml" href="/lottotest/favicon.svg">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://sedal11.github.io/lottotest/">
   <meta property="og:type" content="website">
@@ -19,6 +20,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/lottotest/manifest.json">
+  <meta name="theme-color" content="#4361ee">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="로또 6/45">
   <meta name="google-adsense-account" content="ca-pub-1792656979108506">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1792656979108506"
      crossorigin="anonymous"></script>
@@ -53,10 +59,23 @@
       <button class="tab" data-tab="check">당첨 확인</button>
       <button class="tab" data-tab="stats">통계</button>
       <button class="tab" data-tab="guide">로또 가이드</button>
+      <button class="tab" data-tab="faq">FAQ</button>
       <button class="tab" data-tab="contact">제휴 문의</button>
     </nav>
 
     <main class="content">
+      <!-- 최신 당첨번호 배너 -->
+      <div id="latestResult" class="card latest-result" style="display:none;">
+        <div class="latest-header">
+          <span class="latest-round"></span>
+          <span class="latest-date"></span>
+        </div>
+        <div class="latest-balls"></div>
+        <div class="latest-bonus">
+          + 보너스 <span class="latest-bonus-ball"></span>
+        </div>
+      </div>
+
       <!-- 번호 생성 탭 -->
       <section id="tab-generate" class="tab-panel active">
         <div class="card">
@@ -77,6 +96,10 @@
             </button>
           </div>
           <div id="generatedResults" class="results"></div>
+          <div id="shareButtons" class="share-buttons" style="display:none;">
+            <button id="shareTwitter" class="btn btn-share btn-twitter">𝕏 공유</button>
+            <button id="shareCopy" class="btn btn-share btn-copy">📋 복사</button>
+          </div>
           <button id="saveAllBtn" class="btn btn-secondary" style="display:none;">
             💾 모두 저장
           </button>
@@ -279,6 +302,66 @@
         </article>
       </section>
 
+      <!-- FAQ 탭 -->
+      <section id="tab-faq" class="tab-panel">
+        <article class="card">
+          <h2>❓ 자주 묻는 질문</h2>
+          <p class="subtitle">로또 6/45 번호 생성기에 대한 궁금증을 해결해드립니다</p>
+
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>이 사이트에서 생성한 번호로 당첨될 수 있나요?</summary>
+              <p>로또 6/45는 완전한 확률 게임입니다. 본 사이트의 번호 생성기는 1~45 중 6개를 무작위로 선택하는 것으로, 실제 로또 추첨과 동일한 확률 원리를 사용합니다. 다만, 어떤 방법을 사용하더라도 당첨을 보장할 수는 없습니다. 재미로 즐겨주세요!</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>생성한 번호는 어디에 저장되나요?</summary>
+              <p>모든 데이터는 사용자의 <strong>브라우저 로컬 스토리지</strong>에만 저장됩니다. 서버로 전송되지 않으며, 다른 사람이 볼 수 없습니다. 브라우저 데이터를 삭제하면 저장된 번호도 함께 삭제되니 주의해주세요.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>모바일에서도 사용할 수 있나요?</summary>
+              <p>네! 모바일, 태블릿, PC 등 모든 기기에서 최적화된 화면으로 이용 가능합니다. 별도의 앱 설치 없이 브라우저에서 바로 사용하세요. 홈 화면에 추가하면 앱처럼 사용할 수도 있습니다.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>번호 생성 알고리즘은 어떤 방식인가요?</summary>
+              <p>JavaScript의 <code>Math.random()</code> 함수를 기반으로 한 균등 분포 난수 생성을 사용합니다. 1부터 45까지의 숫자 중 중복 없이 6개를 선택하며, 모든 번호가 동일한 확률로 선택됩니다.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>로또는 어디서 구매할 수 있나요?</summary>
+              <p>전국의 로또 판매점에서 구매하거나, 동행복권 공식 사이트(<strong>dhlottery.co.kr</strong>)에서 온라인 구매가 가능합니다. 온라인 구매는 회원가입 및 본인인증이 필요합니다. 1장당 1,000원이며 최대 5게임까지 선택 가능합니다.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>당첨 번호는 언제 발표되나요?</summary>
+              <p>매주 <strong>토요일 오후 8시 35분</strong>에 MBC에서 생방송으로 추첨됩니다. 추첨 직후 동행복권 공식 사이트에서도 확인할 수 있습니다. 본 사이트의 "당첨 확인" 탭에서 당첨 번호를 입력하면 저장된 번호와 자동으로 비교해줍니다.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>당첨금에 세금이 붙나요?</summary>
+              <p>5만원 이하(4~5등)는 비과세입니다. 5만원 초과~3억원 이하는 22%(소득세 20% + 주민세 2%)가 원천징수됩니다. 3억원 초과분에 대해서는 33%(소득세 30% + 주민세 3%)가 적용됩니다.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>이 사이트는 동행복권과 관련이 있나요?</summary>
+              <p>아닙니다. 본 사이트는 동행복권 또는 기타 복권 운영 기관과 <strong>어떠한 제휴 관계도 없는 독립적인 서비스</strong>입니다. 순수하게 번호 생성 편의를 위해 제공되는 무료 웹 도구입니다.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>다크 모드는 어떻게 전환하나요?</summary>
+              <p>화면 우측 상단의 🌙/☀️ 버튼을 클릭하면 다크 모드와 라이트 모드를 전환할 수 있습니다. 설정은 브라우저에 저장되어 다음 방문 시에도 유지됩니다.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>복권 중독이 걱정됩니다. 도움을 받을 수 있나요?</summary>
+              <p>복권 구매가 습관적으로 느껴지거나 경제적 어려움을 겪고 계시다면, <strong>한국도박문제관리센터</strong>(국번 없이 <strong>1336</strong>)에 전화하시면 무료 상담을 받으실 수 있습니다. 복권은 반드시 여가 활동의 범위 내에서 즐겨주세요.</p>
+            </details>
+          </div>
+        </article>
+      </section>
+
       <!-- 제휴 문의 탭 -->
       <section id="tab-contact" class="tab-panel">
         <div class="card">
@@ -323,18 +406,10 @@
       </section>
     </main>
 
-    <!-- Disqus 댓글 -->
-    <section class="card disqus-section">
+    <!-- Disqus 댓글 (지연 로딩) -->
+    <section class="card disqus-section" id="disqus-section">
       <h2>💬 댓글</h2>
       <div id="disqus_thread"></div>
-      <script>
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = 'https://setak.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-      </script>
       <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
     </section>
 
@@ -345,6 +420,8 @@
         <a href="/lottotest/terms.html">이용약관</a>
         <span>|</span>
         <a href="/lottotest/about.html">사이트 소개</a>
+        <span>|</span>
+        <a href="/lottotest/faq.html">FAQ</a>
       </nav>
       <p>© 2024-2026 로또 6/45 번호 생성기. 본 사이트는 동행복권과 관련이 없는 독립적인 서비스입니다.</p>
       <p class="footer-disclaimer">로또 번호 생성은 오락 목적이며, 당첨을 보장하지 않습니다. 복권 구매는 책임감 있게 즐겨주세요.</p>

@@ -174,6 +174,8 @@
     }
 
     $('#saveAllBtn').style.display = 'block';
+    const shareBtns = $('#shareButtons');
+    if (shareBtns) shareBtns.style.display = 'flex';
     updateStats(currentGenerated);
     addToHistory(currentGenerated);
   });
@@ -469,8 +471,102 @@
     });
   }
 
+  // ===== Latest Lottery Results =====
+  async function fetchLatestResult() {
+    const container = $('#latestResult');
+    if (!container) return;
+    try {
+      // Use a CORS proxy to fetch from 동행복권 API
+      const round = Math.floor((Date.now() - new Date('2002-12-07').getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      // Try recent rounds (current estimate might be off by 1-2)
+      let data = null;
+      for (let r = round; r >= round - 3; r--) {
+        try {
+          const res = await fetch(`https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=${r}`);
+          const json = await res.json();
+          if (json.returnValue === 'success') { data = json; break; }
+        } catch { continue; }
+      }
+      if (!data) return;
+
+      const nums = [data.drwtNo1, data.drwtNo2, data.drwtNo3, data.drwtNo4, data.drwtNo5, data.drwtNo6].sort((a, b) => a - b);
+      const bonus = data.bnusNo;
+
+      container.querySelector('.latest-round').textContent = `제${data.drwNo}회`;
+      container.querySelector('.latest-date').textContent = data.drwNoDate;
+
+      const ballsDiv = container.querySelector('.latest-balls');
+      ballsDiv.innerHTML = '';
+      nums.forEach(n => ballsDiv.appendChild(createBallEl(n)));
+
+      const bonusBall = container.querySelector('.latest-bonus-ball');
+      bonusBall.innerHTML = '';
+      bonusBall.appendChild(createBallEl(bonus));
+
+      container.style.display = 'block';
+    } catch { /* silently fail */ }
+  }
+
+  // ===== Social Sharing =====
+  const shareTwitterBtn = $('#shareTwitter');
+  if (shareTwitterBtn) {
+    shareTwitterBtn.addEventListener('click', () => {
+      if (currentGenerated.length === 0) return;
+      const text = currentGenerated.map((nums, i) =>
+        `${String.fromCharCode(65 + i)}: ${nums.join(', ')}`
+      ).join('\n');
+      const msg = `🎱 로또 6/45 번호 생성 결과\n${text}\n\nhttps://sedal11.github.io/lottotest/`;
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`, '_blank');
+    });
+  }
+
+  const shareCopyBtn = $('#shareCopy');
+  if (shareCopyBtn) {
+    shareCopyBtn.addEventListener('click', () => {
+      if (currentGenerated.length === 0) return;
+      const text = currentGenerated.map((nums, i) =>
+        `${String.fromCharCode(65 + i)}: ${nums.join(', ')}`
+      ).join('\n');
+      const msg = `🎱 로또 6/45 번호 생성 결과\n${text}`;
+      navigator.clipboard.writeText(msg).then(() => {
+        showToast('번호가 클립보드에 복사되었습니다!');
+      }).catch(() => {
+        showToast('복사에 실패했습니다.');
+      });
+    });
+  }
+
+  // ===== Disqus Lazy Loading =====
+  function loadDisqus() {
+    if (window._disqusLoaded) return;
+    window._disqusLoaded = true;
+    const d = document, s = d.createElement('script');
+    s.src = 'https://setak.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  }
+
+  const disqusSection = $('#disqus-section');
+  if (disqusSection) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          loadDisqus();
+          observer.disconnect();
+        }
+      });
+    }, { rootMargin: '200px' });
+    observer.observe(disqusSection);
+  }
+
+  // ===== PWA Service Worker =====
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/lottotest/sw.js').catch(() => {});
+  }
+
   // ===== Init =====
   initTheme();
   initNumberGrid();
   renderManualSelected();
+  fetchLatestResult();
 })();
