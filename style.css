@@ -815,6 +815,84 @@ body {
   background: var(--bg-card-inner);
 }
 
+/* ===== Excluded Info ===== */
+.excluded-info {
+  background: var(--bg-card-inner);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.excluded-info span:first-child {
+  font-weight: 700;
+  color: var(--danger);
+}
+
+/* ===== Winning History ===== */
+.winning-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.winning-history-item {
+  background: var(--bg-card-inner);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.wh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.wh-round {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.wh-date {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.wh-balls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.wh-balls .ball {
+  width: 36px;
+  height: 36px;
+  font-size: 0.85rem;
+}
+
+.wh-bonus {
+  color: var(--text-secondary);
+  font-weight: 700;
+  margin: 0 2px;
+  font-size: 0.9rem;
+}
+
+.wh-prize {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.history-controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* ===== FAQ ===== */
 .faq-list {
   display: flex;

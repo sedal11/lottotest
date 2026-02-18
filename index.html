@@ -61,6 +61,7 @@
       <button class="tab" data-tab="saved">내 번호</button>
       <button class="tab" data-tab="check">당첨 확인</button>
       <button class="tab" data-tab="stats">통계</button>
+      <button class="tab" data-tab="history">역대 당첨</button>
       <button class="tab" data-tab="guide">로또 가이드</button>
       <button class="tab" data-tab="faq">FAQ</button>
       <button class="tab" data-tab="contact">제휴 문의</button>
@@ -94,10 +95,22 @@
                 <option value="10">10게임</option>
               </select>
             </label>
-            <button id="generateBtn" class="btn btn-primary btn-large">
-              <span class="btn-icon">🎰</span> 번호 생성
-            </button>
+            <label>
+              제외 옵션
+              <select id="excludeOption">
+                <option value="none">제외 없음</option>
+                <option value="last1">최근 1회 당첨번호 제외</option>
+                <option value="last3">최근 3회 당첨번호 제외</option>
+                <option value="last5">최근 5회 당첨번호 제외</option>
+              </select>
+            </label>
           </div>
+          <div id="excludedInfo" class="excluded-info" style="display:none;">
+            <span>제외된 번호:</span> <span id="excludedNums"></span>
+          </div>
+          <button id="generateBtn" class="btn btn-primary btn-large btn-full">
+            <span class="btn-icon">🎰</span> 번호 생성
+          </button>
           <div id="generatedResults" class="results"></div>
           <div id="shareButtons" class="share-buttons" style="display:none;">
             <button id="shareTwitter" class="btn btn-share btn-twitter">𝕏 공유</button>
@@ -210,6 +223,20 @@
           <p>번호 통계는 내가 생성한 번호들의 출현 빈도를 시각적으로 보여줍니다. 막대 그래프를 통해 어떤 번호가 자주 생성되었는지 한눈에 확인할 수 있습니다.</p>
           <p>로또는 매 추첨마다 독립적인 확률 게임이므로 과거 통계가 미래 결과를 보장하지는 않지만, 자신만의 번호 패턴을 파악하는 재미를 느낄 수 있습니다.</p>
         </article>
+      </section>
+
+      <!-- 역대 당첨번호 탭 -->
+      <section id="tab-history" class="tab-panel">
+        <div class="card">
+          <h2>🏆 역대 당첨번호</h2>
+          <p class="subtitle">최근 회차 당첨번호를 확인하세요</p>
+          <div class="history-controls">
+            <button id="historyLoadMore" class="btn btn-outline">더 불러오기</button>
+          </div>
+          <div id="winningHistory" class="winning-history">
+            <div class="empty-state"><p>불러오는 중...</p></div>
+          </div>
+        </div>
       </section>
 
       <!-- 로또 가이드 탭 -->

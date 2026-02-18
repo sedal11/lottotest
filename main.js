@@ -113,6 +113,82 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
 
+  // ===== Winning History Cache =====
+  let cachedWinningData = [];
+  let latestRound = 0;
+
+  async function fetchRound(round) {
+    try {
+      const res = await fetch(`https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=${round}`);
+      const json = await res.json();
+      if (json.returnValue === 'success') return json;
+    } catch {}
+    return null;
+  }
+
+  async function fetchRecentRounds(count) {
+    if (latestRound === 0) {
+      latestRound = Math.floor((Date.now() - new Date('2002-12-07').getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      // Verify the round
+      for (let r = latestRound; r >= latestRound - 3; r--) {
+        const data = await fetchRound(r);
+        if (data) { latestRound = data.drwNo; break; }
+      }
+    }
+
+    const startFrom = cachedWinningData.length > 0
+      ? cachedWinningData[cachedWinningData.length - 1].round - 1
+      : latestRound;
+
+    const promises = [];
+    for (let r = startFrom; r > startFrom - count && r > 0; r--) {
+      promises.push(fetchRound(r));
+    }
+
+    const results = await Promise.all(promises);
+    results.forEach(data => {
+      if (data && !cachedWinningData.find(d => d.round === data.drwNo)) {
+        cachedWinningData.push({
+          round: data.drwNo,
+          date: data.drwNoDate,
+          numbers: [data.drwtNo1, data.drwtNo2, data.drwtNo3, data.drwtNo4, data.drwtNo5, data.drwtNo6].sort((a, b) => a - b),
+          bonus: data.bnusNo,
+          prize1: data.firstWinamnt,
+          winners1: data.firstPrzwnerCo,
+        });
+      }
+    });
+
+    cachedWinningData.sort((a, b) => b.round - a.round);
+    return cachedWinningData;
+  }
+
+  function getExcludedNumbers(option) {
+    if (option === 'none' || cachedWinningData.length === 0) return [];
+    const count = option === 'last1' ? 1 : option === 'last3' ? 3 : 5;
+    const excluded = new Set();
+    cachedWinningData.slice(0, count).forEach(d => {
+      d.numbers.forEach(n => excluded.add(n));
+      excluded.add(d.bonus);
+    });
+    return [...excluded].sort((a, b) => a - b);
+  }
+
+  function generateNumbersWithExclusion(excluded) {
+    const pool = [];
+    for (let i = 1; i <= 45; i++) {
+      if (!excluded.includes(i)) pool.push(i);
+    }
+    if (pool.length < 6) return generateNumbers(); // fallback
+    const numbers = [];
+    const available = [...pool];
+    while (numbers.length < 6) {
+      const idx = Math.floor(Math.random() * available.length);
+      numbers.push(available.splice(idx, 1)[0]);
+    }
+    return numbers.sort((a, b) => a - b);
+  }
+
   // ===== Theme =====
   function initTheme() {
     const saved = localStorage.getItem(STORAGE.THEME);
@@ -140,6 +216,7 @@
 
       if (tab.dataset.tab === 'saved') renderSaved();
       if (tab.dataset.tab === 'stats') renderStats();
+      if (tab.dataset.tab === 'history') loadWinningHistory();
     });
   });
 
@@ -148,12 +225,23 @@
 
   $('#generateBtn').addEventListener('click', () => {
     const count = parseInt($('#gameCount').value);
+    const excludeOption = $('#excludeOption').value;
+    const excluded = getExcludedNumbers(excludeOption);
     currentGenerated = [];
     const container = $('#generatedResults');
     container.innerHTML = '';
 
+    // Show excluded numbers info
+    const excludedInfo = $('#excludedInfo');
+    if (excluded.length > 0 && excludedInfo) {
+      $('#excludedNums').textContent = excluded.join(', ');
+      excludedInfo.style.display = 'block';
+    } else if (excludedInfo) {
+      excludedInfo.style.display = 'none';
+    }
+
     for (let i = 0; i < count; i++) {
-      const nums = generateNumbers();
+      const nums = excluded.length > 0 ? generateNumbersWithExclusion(excluded) : generateNumbers();
       currentGenerated.push(nums);
 
       const row = document.createElement('div');
@@ -471,29 +559,88 @@
     });
   }
 
+  // ===== Winning History Tab =====
+  let historyLoaded = false;
+
+  async function loadWinningHistory() {
+    if (historyLoaded && cachedWinningData.length > 0) {
+      renderWinningHistory();
+      return;
+    }
+    await fetchRecentRounds(10);
+    historyLoaded = true;
+    renderWinningHistory();
+  }
+
+  function renderWinningHistory() {
+    const container = $('#winningHistory');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (cachedWinningData.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>당첨번호를 불러올 수 없습니다.</p></div>';
+      return;
+    }
+
+    cachedWinningData.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'winning-history-item';
+
+      const header = document.createElement('div');
+      header.className = 'wh-header';
+      header.innerHTML = `<span class="wh-round">제${item.round}회</span><span class="wh-date">${item.date}</span>`;
+
+      const ballsRow = document.createElement('div');
+      ballsRow.className = 'wh-balls';
+      item.numbers.forEach(n => ballsRow.appendChild(createBallEl(n)));
+
+      const bonusSpan = document.createElement('span');
+      bonusSpan.className = 'wh-bonus';
+      bonusSpan.textContent = '+';
+      ballsRow.appendChild(bonusSpan);
+      ballsRow.appendChild(createBallEl(item.bonus));
+
+      const prizeInfo = document.createElement('div');
+      prizeInfo.className = 'wh-prize';
+      if (item.prize1) {
+        const prizeText = (item.prize1 / 100000000).toFixed(1);
+        prizeInfo.textContent = `1등 ${prizeText}억원 (${item.winners1}명)`;
+      }
+
+      row.appendChild(header);
+      row.appendChild(ballsRow);
+      row.appendChild(prizeInfo);
+      container.appendChild(row);
+    });
+  }
+
+  const historyLoadMore = $('#historyLoadMore');
+  if (historyLoadMore) {
+    historyLoadMore.addEventListener('click', async () => {
+      historyLoadMore.disabled = true;
+      historyLoadMore.textContent = '불러오는 중...';
+      await fetchRecentRounds(10);
+      renderWinningHistory();
+      historyLoadMore.disabled = false;
+      historyLoadMore.textContent = '더 불러오기';
+    });
+  }
+
   // ===== Latest Lottery Results =====
   async function fetchLatestResult() {
     const container = $('#latestResult');
     if (!container) return;
     try {
-      // Use a CORS proxy to fetch from 동행복권 API
-      const round = Math.floor((Date.now() - new Date('2002-12-07').getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
-      // Try recent rounds (current estimate might be off by 1-2)
-      let data = null;
-      for (let r = round; r >= round - 3; r--) {
-        try {
-          const res = await fetch(`https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=${r}`);
-          const json = await res.json();
-          if (json.returnValue === 'success') { data = json; break; }
-        } catch { continue; }
-      }
+      // Fetch recent rounds for cache + display
+      await fetchRecentRounds(5);
+      const data = cachedWinningData[0];
       if (!data) return;
 
-      const nums = [data.drwtNo1, data.drwtNo2, data.drwtNo3, data.drwtNo4, data.drwtNo5, data.drwtNo6].sort((a, b) => a - b);
-      const bonus = data.bnusNo;
+      const nums = data.numbers;
+      const bonus = data.bonus;
 
-      container.querySelector('.latest-round').textContent = `제${data.drwNo}회`;
-      container.querySelector('.latest-date').textContent = data.drwNoDate;
+      container.querySelector('.latest-round').textContent = `제${data.round}회`;
+      container.querySelector('.latest-date').textContent = data.date;
 
       const ballsDiv = container.querySelector('.latest-balls');
       ballsDiv.innerHTML = '';
