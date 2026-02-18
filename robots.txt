@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sedal11.github.io/lottotest/sitemap.xml

@@ -752,12 +752,199 @@ body {
   min-height: 200px;
 }
 
+/* ===== Info Cards (Guide Content) ===== */
+.info-card {
+  margin-top: 16px;
+}
+
+.info-card h3 {
+  font-size: 1.05rem;
+  margin-bottom: 12px;
+}
+
+.info-card p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.info-card ul, .info-card ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.info-card li {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+
+.info-note {
+  font-size: 0.82rem !important;
+  color: var(--text-secondary) !important;
+  font-style: italic;
+}
+
+/* ===== Guide Section ===== */
+.guide-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.guide-section:first-of-type {
+  margin-top: 16px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.guide-section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: var(--primary);
+}
+
+.guide-section p {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+.guide-section ul, .guide-section ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.guide-section li {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  margin-bottom: 6px;
+}
+
+/* ===== Prize / Probability Tables ===== */
+.prize-table, .probability-table {
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.prize-table table, .probability-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.prize-table th, .probability-table th {
+  background: var(--bg-card-inner);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 700;
+  border-bottom: 2px solid var(--border);
+}
+
+.prize-table td, .probability-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ===== Policy Pages ===== */
+.policy-page {
+  line-height: 1.8;
+}
+
+.policy-page h1 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.policy-page h2 {
+  font-size: 1.1rem;
+  margin-top: 28px;
+  margin-bottom: 12px;
+  color: var(--primary);
+}
+
+.policy-page p {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.policy-page ul, .policy-page ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.policy-page li {
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.policy-date {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* ===== About Page Features ===== */
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feature-item {
+  background: var(--bg-card-inner);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+
+.feature-item h3 {
+  margin-bottom: 6px;
+}
+
+.feature-item p {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
 /* ===== Footer ===== */
 .footer {
   text-align: center;
   padding: 24px 0;
   color: var(--text-secondary);
   font-size: 0.82rem;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.footer-links span {
+  color: var(--border);
+}
+
+.footer-disclaimer {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 
 /* ===== Toast Notification ===== */
