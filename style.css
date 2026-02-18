@@ -737,6 +737,21 @@ body {
   margin-bottom: 20px;
 }
 
+/* ===== Disqus Comments ===== */
+.disqus-section {
+  margin-top: 24px;
+}
+
+.disqus-section h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+#disqus_thread {
+  min-height: 200px;
+}
+
 /* ===== Footer ===== */
 .footer {
   text-align: center;
